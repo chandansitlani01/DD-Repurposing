@@ -1,0 +1,6 @@
+tensorflow
+numpy
+pandas
+PyTDC
+rdkit-pypi
+streamlit

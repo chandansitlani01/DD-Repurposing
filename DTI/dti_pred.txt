@@ -1,0 +1,68 @@
+import tensorflow as tf
+import pandas as pd
+import numpy
+import tensorflow as tf 
+import json
+
+#model=tf.keras.models.load_model("model_DTI.h5")
+
+with open("voc_DTI_D.json", 'r') as f:
+  voc=json.load(f)
+
+
+with open("voc_DTI_Target.json", 'r') as f:
+  voc_t=json.load(f)
+
+def encode(row):
+  r2=row
+  for i in range(len(row)):
+    if row[i] in voc.keys():
+        r2[i]=voc[row[i]]
+    else:
+        r2[i]=0
+  return r2
+
+def encode_t(row):
+  r2=row
+  for i in range(len(row)):
+    r2[i]=voc_t[row[i]]
+  return r2
+
+import numpy as np
+
+def one_hot_d(x):
+  x3d=np.zeros((x.shape[0], x.shape[1], len(voc)+1))
+  for i in range(x.shape[0]):
+    for j in range(x.shape[1]):
+      x3d[i][j][x[i][j]]=1
+  
+  return x3d
+
+def one_hot_t(x):
+  x3d=np.zeros((x.shape[0], x.shape[1], len(voc_t)+1))
+  for i in range(x.shape[0]):
+    for j in range(x.shape[1]):
+      x3d[i][j][x[i][j]]=1
+  
+  return x3d
+
+
+def pred(d, t):
+  d=list(d)
+  d=encode(d)
+  d=np.expand_dims(d, axis=0)
+  d=tf.keras.preprocessing.sequence.pad_sequences(d, 90)
+  d=d.reshape(d.shape[0], d.shape[1], 1)
+  #d=one_hot_d(d)
+
+
+  t=list(t)
+  t=encode_t(t)
+  t=np.expand_dims(t, axis=0)
+  t=tf.keras.preprocessing.sequence.pad_sequences(t, 1300)
+  t=t.reshape(t.shape[0], t.shape[1], 1)
+  #t=one_hot_t(t)
+
+  pre=model.predict([d, t])
+  p=np.argmax(pre, axis=-1)
+  return p, pre
